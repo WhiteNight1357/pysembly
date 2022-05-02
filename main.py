@@ -5,6 +5,7 @@ class PyAsmScript:
         self.scriptpointer = 0
         self.memory = []
         self.accumulator = 0
+        self.stack = []
 
     def load(self, location):
         self.script.append(["load", location])
@@ -29,6 +30,12 @@ class PyAsmScript:
 
     def compare_equal(self, location):
         self.script.append(["cmp_equal", location])
+
+    def push(self, location):
+        self.script.append(["push", location])
+
+    def pop(self):
+        self.script.append(["pop", None])
 
     def run(self):
 
@@ -91,6 +98,15 @@ class PyAsmScript:
                 except TypeError:
                     if not self.accumulator == int(location):
                         self.scriptpointer += 1
+
+            if code == "push":
+                try:
+                    self.stack.append(self.memory[location])
+                except TypeError:
+                    self.stack.append(int(location))
+
+            if code == "pop":
+                self.accumulator = self.stack.pop()
 
             self.scriptpointer += 1
 
