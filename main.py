@@ -61,7 +61,10 @@ class PyAsmScript:
                 self.memory.insert(location, self.accumulator)
 
             if code == "goto":
-                self.scriptpointer = location
+                if location is None:
+                    self.scriptpointer = self.accumulator
+                else:
+                    self.scriptpointer = location
 
             if code == "add":
                 try:
@@ -109,6 +112,15 @@ class PyAsmScript:
                 self.accumulator = self.stack.pop()
 
             self.scriptpointer += 1
+
+    def clear_script(self):
+        self.script = []
+
+    def clear_memory(self):
+        self.memory = []
+
+    def clear_stack(self):
+        self.stack = []
 
 
 if __name__ == "__main__":
