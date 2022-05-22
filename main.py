@@ -4,7 +4,7 @@ class PyAsmScript:
         self.script = []
         self.scriptpointer = 0
         self.memory = []
-        self.accumulator = 0
+        self.register = 0
         self.stack = []
 
     def load(self, location, mode):
@@ -59,43 +59,43 @@ class PyAsmScript:
                 raise Exception("'mode' should be None, True, or False")
 
             if code == "load":
-                self.accumulator = value
+                self.register = value
 
             if code == "store":
                 while len(self.memory) < value + 1:
                     self.memory.append(None)
                 self.memory.pop(value)
-                self.memory.insert(value, self.accumulator)
+                self.memory.insert(value, self.register)
 
             if code == "goto":
                 if value is None:
-                    self.scriptpointer = self.accumulator
+                    self.scriptpointer = self.register
                 else:
                     self.scriptpointer = value
 
             if code == "add":
-                self.accumulator += value
+                self.register += value
 
             if code == "sub":
-                self.accumulator -= value
+                self.register -= value
 
             if code == "cmp_more":
-                if not self.accumulator > value:
+                if not self.register > value:
                     self.scriptpointer += 1
 
             if code == "cmp_less":
-                if not self.accumulator < value:
+                if not self.register < value:
                     self.scriptpointer += 1
 
             if code == "cmp_equal":
-                if not self.accumulator == value:
+                if not self.register == value:
                     self.scriptpointer += 1
 
             if code == "push":
                 self.stack.append(value)
 
             if code == "pop":
-                self.accumulator = self.stack.pop()
+                self.register = self.stack.pop()
 
             self.scriptpointer += 1
 
