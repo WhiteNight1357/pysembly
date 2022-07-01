@@ -6,6 +6,8 @@ class PyAsmScript:
         self.memory = []
         self.register = 0
         self.stack = []
+        self.labels = []
+        self.labeldata = []
 
     def load(self, location, mode):
         self.script.append(["load", location, mode])
@@ -36,6 +38,16 @@ class PyAsmScript:
 
     def pop(self):
         self.script.append(["pop", None, None])
+
+    def label(self, label):     # label() labels NEXT line, not previous
+        try:
+            self.labels.index(label)
+            raise Exception("this label is already in label list")
+        except ValueError:
+            if not isinstance(label, str):
+                raise Exception("'label' should be string")
+            self.labels.append(label)
+            self.labeldata.append(len(self.script))
 
     def run(self):
 
@@ -70,6 +82,8 @@ class PyAsmScript:
             if code == "goto":
                 if value is None:
                     self.scriptpointer = self.register
+                elif isinstance(value, str):
+                    self.scriptpointer = self.labeldata[self.labels.index(value)]
                 else:
                     self.scriptpointer = value
 
@@ -119,6 +133,8 @@ if __name__ == "__main__":
     asm.load(0, None)                  # 4:
     asm.store(2, None)                 # 5: set location 2 as int 0 (location 2 is var 'next' from now on)
 
+    asm.label("a")                     # label: line 6 as label "a"
+
     asm.load(0, True)                  # 6: add first and second to
     asm.add(1, True)                   # 7: calculate next
     asm.store(2, None)                 # 8:
@@ -129,7 +145,7 @@ if __name__ == "__main__":
     asm.store(1, None)                 # 12:
 
     asm.compare_less(200, None)        # 13: if second is less than int 200
-    asm.goto(6, None)                  # 14: goto 6 and repeat
+    asm.goto("a", None)                # 14: goto "a" and repeat
 
     asm.run()
 
