@@ -81,11 +81,11 @@ class PyAsmScript:
 
             if code == "goto":
                 if value is None:
-                    self.scriptpointer = self.register
+                    self.scriptpointer = self.register - 1
                 elif isinstance(value, str):
-                    self.scriptpointer = self.labeldata[self.labels.index(value)]
+                    self.scriptpointer = self.labeldata[self.labels.index(value)] - 1
                 else:
-                    self.scriptpointer = value
+                    self.scriptpointer = value - 1
 
             if code == "add":
                 self.register += value
@@ -111,6 +111,7 @@ class PyAsmScript:
             if code == "pop":
                 self.register = self.stack.pop()
 
+            self.debug()
             self.scriptpointer += 1
 
     def clear_script(self):
@@ -121,6 +122,12 @@ class PyAsmScript:
 
     def clear_stack(self):
         self.stack = []
+
+    def debug(self):
+        print(self.memory)
+        print(self.register)
+        print(self.scriptpointer)
+        print("---------------------------")
 
 
 if __name__ == "__main__":
