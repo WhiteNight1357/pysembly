@@ -8,6 +8,7 @@ class PyAsmScript:
         self.stack = []
         self.labels = []
         self.labeldata = []
+        self.debugging = False
 
     def load(self, location, mode):
         self.script.append(["load", location, mode])
@@ -49,6 +50,9 @@ class PyAsmScript:
             self.labels.append(label)
             self.labeldata.append(len(self.script))
 
+    def null(self):
+        self.script.append([None, None, None])
+
     def run(self):
 
         self.scriptpointer = 0
@@ -81,11 +85,12 @@ class PyAsmScript:
 
             if code == "goto":
                 if value is None:
-                    self.scriptpointer = self.register - 1
+                    self.scriptpointer = self.register
                 elif isinstance(value, str):
-                    self.scriptpointer = self.labeldata[self.labels.index(value)] - 1
+                    self.scriptpointer = self.labeldata[self.labels.index(value)]
                 else:
-                    self.scriptpointer = value - 1
+                    self.scriptpointer = value
+                self.scriptpointer -= 1
 
             if code == "add":
                 self.register += value
@@ -111,7 +116,9 @@ class PyAsmScript:
             if code == "pop":
                 self.register = self.stack.pop()
 
-            self.debug()
+            if self.debugging:
+                self.debug()
+
             self.scriptpointer += 1
 
     def clear_script(self):
@@ -132,6 +139,7 @@ class PyAsmScript:
 
 if __name__ == "__main__":
     asm = PyAsmScript()
+    asm.debugging = True
 
     asm.load(0, None)                  # 0:
     asm.store(0, None)                 # 1: set location 0 as int 0 (location 0 is var 'first' from now on)
