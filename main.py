@@ -78,6 +78,19 @@ class PyAsmScript:
             if isinstance(location, str):
                 location = self.labeldata[self.labels.index(location)]
 
+            if mode == "Instant" or mode == "instant" or mode == "ins":
+                mode = None
+            elif mode == "Direct" or mode == "direct" or mode == "dir":
+                mode = True
+            elif mode == "Indirect" or mode == "indirect" or mode == "ind":
+                mode = False
+
+            if not (mode is None or mode is True or mode is False) and isinstance(mode, str):
+                raise Exception("'mode' using string should be\n"
+                                "'Instant', 'Direct', 'Indirect',\n"
+                                "'instant', 'direct','indirect',\n"
+                                "'ins',     'dir',     or 'ind'")
+
             if mode is None:
                 value = location
             elif mode is True:
@@ -158,26 +171,26 @@ if __name__ == "__main__":
     asm.label_location(1, "second")    # label: location 1 as label "second"
     asm.label_location(2, "next")      # label: location 2 as label "next"
 
-    asm.load(0, None)                  # 0:
-    asm.store("first", None)           # 1: set first as int 0
-    asm.load(1, None)                  # 2:
-    asm.store("second", None)          # 3: set second as int 1
-    asm.load(0, None)                  # 4:
-    asm.store("next", None)            # 5: set next as int 0
+    asm.load(0, "ins")                 # 0:
+    asm.store("first", "ins")          # 1: set first as int 0
+    asm.load(1, "ins")                 # 2:
+    asm.store("second", "ins")         # 3: set second as int 1
+    asm.load(0, "ins")                 # 4:
+    asm.store("next", "ins")           # 5: set next as int 0
 
     asm.label_line("a")                # label: line 6 as label "a"
 
-    asm.load("first", True)            # 6: add first and second to
-    asm.add("second", True)            # 7: calculate next
-    asm.store("next", None)            # 8:
+    asm.load("first", "dir")           # 6: add first and second to
+    asm.add("second", "dir")           # 7: calculate next
+    asm.store("next", "ins")           # 8:
 
-    asm.load("second", True)           # 9: move second to first
-    asm.store("first", None)           # 10:
-    asm.load("next", True)             # 11: move next to second
-    asm.store("second", None)          # 12:
+    asm.load("second", "dir")          # 9: move second to first
+    asm.store("first", "ins")          # 10:
+    asm.load("next", "dir")            # 11: move next to second
+    asm.store("second", "ins")         # 12:
 
-    asm.compare_less(200, None)        # 13: if second is less than int 200
-    asm.goto("a", None)                # 14: goto "a" and repeat
+    asm.compare_less(200, "ins")       # 13: if second is less than int 200
+    asm.goto("a", "ins")               # 14: goto "a" and repeat
 
     asm.run()
 
