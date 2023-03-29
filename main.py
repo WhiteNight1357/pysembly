@@ -10,32 +10,41 @@ class PyAsmScript:
         self.labeldata = []
         self.debugging = False
 
-    def load(self, location, mode):
-        self.script.append(["load", location, mode])
+    def __indcountcheck(self, param):
+        if param[2] == "Indirect" or param[2] == "indirect" or param[2] == "ind":
+            if not isinstance(param[3], int):
+                raise Exception("'indcount' should be int")
+            return param
+        else:
+            del param[3]
+            return param
 
-    def store(self, location, mode):
-        self.script.append(["store", location, mode])
+    def load(self, location, mode, *, indcount=1):
+        self.script.append(self.__indcountcheck(["load", location, mode, indcount]))
 
-    def goto(self, location, mode):
-        self.script.append(["goto", location, mode])
+    def store(self, location, mode, *, indcount=1):
+        self.script.append(self.__indcountcheck(["store", location, mode, indcount]))
 
-    def add(self, location, mode):
-        self.script.append(["add", location, mode])
+    def goto(self, location, mode, *, indcount=1):
+        self.script.append(self.__indcountcheck(["goto", location, mode, indcount]))
 
-    def sub(self, location, mode):
-        self.script.append(["sub", location, mode])
+    def add(self, location, mode, *, indcount=1):
+        self.script.append(self.__indcountcheck(["add", location, mode, indcount]))
 
-    def compare_more(self, location, mode):
-        self.script.append(["cmp_more", location, mode])
+    def sub(self, location, mode, *, indcount=1):
+        self.script.append(self.__indcountcheck(["sub", location, mode, indcount]))
 
-    def compare_less(self, location, mode):
-        self.script.append(["cmp_less", location, mode])
+    def compare_more(self, location, mode, *, indcount=1):
+        self.script.append(self.__indcountcheck(["cmp_more", location, mode, indcount]))
 
-    def compare_equal(self, location, mode):
-        self.script.append(["cmp_equal", location, mode])
+    def compare_less(self, location, mode, *, indcount=1):
+        self.script.append(self.__indcountcheck(["cmp_less", location, mode, indcount]))
 
-    def push(self, location, mode):
-        self.script.append(["push", location, mode])
+    def compare_equal(self, location, mode, *, indcount=1):
+        self.script.append(self.__indcountcheck(["cmp_equal", location, mode, indcount]))
+
+    def push(self, location, mode, *, indcount=1):
+        self.script.append(self.__indcountcheck(["push", location, mode, indcount]))
 
     def pop(self):
         self.script.append(["pop", None, None])
@@ -74,6 +83,10 @@ class PyAsmScript:
             code = self.script[self.scriptpointer][0]
             location = self.script[self.scriptpointer][1]
             mode = self.script[self.scriptpointer][2]
+            try:
+                indcount = self.script[self.scriptpointer][3]
+            except IndexError:
+                indcount = None
 
             if isinstance(location, str):
                 location = self.labeldata[self.labels.index(location)]
@@ -86,9 +99,9 @@ class PyAsmScript:
                 mode = False
 
             if not (mode is None or mode is True or mode is False) and isinstance(mode, str):
-                raise Exception("'mode' using string should be\n"
+                raise Exception("'mode' using string should be:\n"
                                 "'Instant', 'Direct', 'Indirect',\n"
-                                "'instant', 'direct','indirect',\n"
+                                "'instant', 'direct', 'indirect',\n"
                                 "'ins',     'dir',     or 'ind'")
 
             if mode is None:
@@ -96,7 +109,11 @@ class PyAsmScript:
             elif mode is True:
                 value = self.memory[location]
             elif mode is False:
-                value = self.memory[self.memory[location]]
+                a = location
+                while not indcount == 0:
+                    a = self.memory[self.memory[a]]
+                    indcount -= 1
+                value = a
             else:
                 raise Exception("'mode' should be None, True, or False")
 
