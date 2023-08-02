@@ -10,41 +10,32 @@ class PyAsmScript:
         self.labeldata = []
         self.debugging = False
 
-    def __indcountcheck(self, param):
-        if param[2] == "Indirect" or param[2] == "indirect" or param[2] == "ind":
-            if not isinstance(param[3], int):
-                raise Exception("'indcount' should be int")
-            return param
-        else:
-            del param[3]
-            return param
-
     def load(self, location, mode, *, indcount=1):
-        self.script.append(self.__indcountcheck(["load", location, mode, indcount]))
+        self.script.append(indcountcheck(["load", location, mode, indcount]))
 
     def store(self, location, mode, *, indcount=1):
-        self.script.append(self.__indcountcheck(["store", location, mode, indcount]))
+        self.script.append(indcountcheck(["store", location, mode, indcount]))
 
     def goto(self, location, mode, *, indcount=1):
-        self.script.append(self.__indcountcheck(["goto", location, mode, indcount]))
+        self.script.append(indcountcheck(["goto", location, mode, indcount]))
 
     def add(self, location, mode, *, indcount=1):
-        self.script.append(self.__indcountcheck(["add", location, mode, indcount]))
+        self.script.append(indcountcheck(["add", location, mode, indcount]))
 
     def sub(self, location, mode, *, indcount=1):
-        self.script.append(self.__indcountcheck(["sub", location, mode, indcount]))
+        self.script.append(indcountcheck(["sub", location, mode, indcount]))
 
     def compare_more(self, location, mode, *, indcount=1):
-        self.script.append(self.__indcountcheck(["cmp_more", location, mode, indcount]))
+        self.script.append(indcountcheck(["cmp_more", location, mode, indcount]))
 
     def compare_less(self, location, mode, *, indcount=1):
-        self.script.append(self.__indcountcheck(["cmp_less", location, mode, indcount]))
+        self.script.append(indcountcheck(["cmp_less", location, mode, indcount]))
 
     def compare_equal(self, location, mode, *, indcount=1):
-        self.script.append(self.__indcountcheck(["cmp_equal", location, mode, indcount]))
+        self.script.append(indcountcheck(["cmp_equal", location, mode, indcount]))
 
     def push(self, location, mode, *, indcount=1):
-        self.script.append(self.__indcountcheck(["push", location, mode, indcount]))
+        self.script.append(indcountcheck(["push", location, mode, indcount]))
 
     def pop(self):
         self.script.append(["pop", None, None])
@@ -109,9 +100,10 @@ class PyAsmScript:
             elif mode is True:
                 value = self.memory[location]
             elif mode is False:
-                a = location
+                a = self.memory[location]
+                indcount -= 1
                 while not indcount == 0:
-                    a = self.memory[self.memory[a]]
+                    a = self.memory[a]
                     indcount -= 1
                 value = a
             else:
@@ -180,35 +172,59 @@ class PyAsmScript:
         print("---------------------------")
 
 
+def indcountcheck(param):
+    if param[2] == "Indirect" or param[2] == "indirect" or param[2] == "ind":
+        if not isinstance(param[3], int):
+            raise Exception("'indcount' should be int")
+        return param
+    else:
+        del param[3]
+        return param
+
+
 if __name__ == "__main__":
-    asm = PyAsmScript()                # Sample Code: Calculates first fibonacci number higher than 200
+    asm = PyAsmScript()                # Sample Code: Calculate fibonacci sequence until it gets higher than 200
     asm.debugging = True               # Enables debugging
 
-    asm.label_location(0, "first")     # label: location 0 as label "first"
-    asm.label_location(1, "second")    # label: location 1 as label "second"
-    asm.label_location(2, "next")      # label: location 2 as label "next"
+    # TODO: Write Sample Code Comments
 
-    asm.load(0, "ins")                 # 0:
-    asm.store("first", "ins")          # 1: set first as int 0
-    asm.load(1, "ins")                 # 2:
-    asm.store("second", "ins")         # 3: set second as int 1
-    asm.load(0, "ins")                 # 4:
-    asm.store("next", "ins")           # 5: set next as int 0
+    asm.label_location(20, "first")    # label: location 20 as label "first"
+    asm.label_location(21, "second")   # label: location 21 as label "second"
+    asm.label_location(22, "next")     # label: location 22 as label "next"
+    asm.label_location(23, "counter")  # label: location 23 as label "counter"
 
-    asm.label_line("a")                # label: line 6 as label "a"
+    asm.load(0, "ins")
+    asm.store("first", "ins")
+    asm.store(0, "ins")
+    asm.load(1, "ins")
+    asm.store("second", "ins")
+    asm.store(1, "ins")
+    asm.load(0, "ins")
+    asm.store("next", "ins")
+    asm.load(2, "ins")
+    asm.store("counter", "ins")
 
-    asm.load("first", "dir")           # 6: add first and second to
-    asm.add("second", "dir")           # 7: calculate next
-    asm.store("next", "ins")           # 8:
+    asm.label_line("a")
 
-    asm.load("second", "dir")          # 9: move second to first
-    asm.store("first", "ins")          # 10:
-    asm.load("next", "dir")            # 11: move next to second
-    asm.store("second", "ins")         # 12:
+    asm.load("first", "dir")
+    asm.add("second", "dir")
+    asm.store("next", "ins")
+    asm.store("counter", "dir")
 
-    asm.compare_less(200, "ins")       # 13: if second is less than int 200
-    asm.goto("a", "ins")               # 14: goto "a" and repeat
+    asm.load("counter", "dir")
+    asm.add(1, "ins")
+    asm.store("counter", "ins")
+
+    asm.load("second", "dir")
+    asm.store("first", "ins")
+    asm.load("next", "dir")
+    asm.store("second", "ins")
+
+    asm.compare_less(200, "ins")
+    asm.goto("a", "ins")
+
+
 
     asm.run()
 
-    print(asm.memory[1])               # print(second)
+    print(asm.memory[1:20])               # print(second)
