@@ -11,31 +11,31 @@ class PyAsmScript:
         self.debugging = False
 
     def load(self, location, mode, *, indcount=1):
-        self.script.append(indcountcheck(["load", location, mode, indcount]))
+        self.script.append(self.__indcountcheck(["load", location, mode, indcount]))
 
     def store(self, location, mode, *, indcount=1):
-        self.script.append(indcountcheck(["store", location, mode, indcount]))
+        self.script.append(self.__indcountcheck(["store", location, mode, indcount]))
 
     def goto(self, location, mode, *, indcount=1):
-        self.script.append(indcountcheck(["goto", location, mode, indcount]))
+        self.script.append(self.__indcountcheck(["goto", location, mode, indcount]))
 
     def add(self, location, mode, *, indcount=1):
-        self.script.append(indcountcheck(["add", location, mode, indcount]))
+        self.script.append(self.__indcountcheck(["add", location, mode, indcount]))
 
     def sub(self, location, mode, *, indcount=1):
-        self.script.append(indcountcheck(["sub", location, mode, indcount]))
+        self.script.append(self.__indcountcheck(["sub", location, mode, indcount]))
 
     def compare_more(self, location, mode, *, indcount=1):
-        self.script.append(indcountcheck(["cmp_more", location, mode, indcount]))
+        self.script.append(self.__indcountcheck(["cmp_more", location, mode, indcount]))
 
     def compare_less(self, location, mode, *, indcount=1):
-        self.script.append(indcountcheck(["cmp_less", location, mode, indcount]))
+        self.script.append(self.__indcountcheck(["cmp_less", location, mode, indcount]))
 
     def compare_equal(self, location, mode, *, indcount=1):
-        self.script.append(indcountcheck(["cmp_equal", location, mode, indcount]))
+        self.script.append(self.__indcountcheck(["cmp_equal", location, mode, indcount]))
 
     def push(self, location, mode, *, indcount=1):
-        self.script.append(indcountcheck(["push", location, mode, indcount]))
+        self.script.append(self.__indcountcheck(["push", location, mode, indcount]))
 
     def pop(self):
         self.script.append(["pop", None, None])
@@ -172,59 +172,58 @@ class PyAsmScript:
         print("---------------------------")
 
 
-def indcountcheck(param):
-    if param[2] == "Indirect" or param[2] == "indirect" or param[2] == "ind":
-        if not isinstance(param[3], int):
-            raise Exception("'indcount' should be int")
-        return param
-    else:
-        del param[3]
-        return param
+    @staticmethod
+    def __indcountcheck(param):
+        if param[2] == "Indirect" or param[2] == "indirect" or param[2] == "ind":
+            if not isinstance(param[3], int):
+                raise Exception("'indcount' should be int")
+            return param
+        else:
+            del param[3]
+            return param
 
 
 if __name__ == "__main__":
-    asm = PyAsmScript()                # Sample Code: Calculate fibonacci sequence until it gets higher than 200
-    asm.debugging = True               # Enables debugging
+    asm = PyAsmScript()                 # Sample Code: Calculate fibonacci sequence until it gets higher than 200
+    asm.debugging = True                # Enables debugging
 
-    # TODO: Write Sample Code Comments
+    asm.label_location(20, "first")     # label: location 20 as label "first"
+    asm.label_location(21, "second")    # label: location 21 as label "second"
+    asm.label_location(22, "next")      # label: location 22 as label "next"
+    asm.label_location(23, "counter")   # label: location 23 as label "counter"
 
-    asm.label_location(20, "first")    # label: location 20 as label "first"
-    asm.label_location(21, "second")   # label: location 21 as label "second"
-    asm.label_location(22, "next")     # label: location 22 as label "next"
-    asm.label_location(23, "counter")  # label: location 23 as label "counter"
+    asm.load(0, "ins")                  # 0: load integer 0 and put into
+    asm.store("first", "ins")           # 1: "first" and
+    asm.store(0, "ins")                 # 2: memory address 0
+    asm.load(1, "ins")                  # 3: load integer 1 and put into
+    asm.store("second", "ins")          # 4: "second" and
+    asm.store(1, "ins")                 # 5: memory address 1
+    asm.load(0, "ins")                  # 6: load integer 0 and put into
+    asm.store("next", "ins")            # 7: "next"
+    asm.load(2, "ins")                  # 8: load integer 2 and put into
+    asm.store("counter", "ins")         # 9: "counter"
 
-    asm.load(0, "ins")
-    asm.store("first", "ins")
-    asm.store(0, "ins")
-    asm.load(1, "ins")
-    asm.store("second", "ins")
-    asm.store(1, "ins")
-    asm.load(0, "ins")
-    asm.store("next", "ins")
-    asm.load(2, "ins")
-    asm.store("counter", "ins")
+    asm.label_line("a")                 # label: line 10 as label "a"
 
-    asm.label_line("a")
+    asm.load("first", "dir")            # 10: load value from "first"
+    asm.add("second", "dir")            # 11: add the value with value in "second" and
+    asm.store("next", "ins")            # 12: put the value into "next" and
+    asm.store("counter", "dir")         # 13: where "counter" points
 
-    asm.load("first", "dir")
-    asm.add("second", "dir")
-    asm.store("next", "ins")
-    asm.store("counter", "dir")
+    asm.load("counter", "dir")          # 14: load "counter" to register
+    asm.add(1, "ins")                   # 15: add integer 1 to register
+    asm.store("counter", "ins")         # 16: store value in register back to "counter"
 
-    asm.load("counter", "dir")
-    asm.add(1, "ins")
-    asm.store("counter", "ins")
+    asm.load("second", "dir")           # 17: load value from "second"
+    asm.store("first", "ins")           # 18: put the value into "first"
+    asm.load("next", "dir")             # 19: load value from "next"
+    asm.store("second", "ins")          # 20: put the value into "second"
 
-    asm.load("second", "dir")
-    asm.store("first", "ins")
-    asm.load("next", "dir")
-    asm.store("second", "ins")
-
-    asm.compare_less(200, "ins")
-    asm.goto("a", "ins")
+    asm.compare_less(200, "ins")        # 21: if the value("next") is lower than integer 200:
+    asm.goto("a", "ins")                # 22: goto line "a" and repeat
 
 
 
     asm.run()
 
-    print(asm.memory[1:20])               # print(second)
+    print(asm.memory[1:14])
