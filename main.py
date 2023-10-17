@@ -185,7 +185,7 @@ class PyAsmScript:
 
 if __name__ == "__main__":
     asm = PyAsmScript()                 # Sample Code: Calculate fibonacci sequence until it gets higher than 200
-    asm.debugging = True                # Enables debugging
+    asm.debugging = True                # Enables debugging (Print extra info, make the code sigificantly slow)
 
     asm.label_location(20, "first")     # label: location 20 as label "first"
     asm.label_location(21, "second")    # label: location 21 as label "second"
