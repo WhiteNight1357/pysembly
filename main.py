@@ -5,37 +5,41 @@ class PyAsmScript:
         self.scriptpointer = 0
         self.memory = []
         self.register = 0
+        self.indregister = 1
         self.stack = []
         self.labels = []
         self.labeldata = []
         self.debugging = False
 
-    def load(self, location, mode, *, indcount=1):
-        self.script.append(self.__indcountcheck(["load", location, mode, indcount]))
+    def load(self, location, mode):
+        self.script.append(["load", location, mode])
 
-    def store(self, location, mode, *, indcount=1):
-        self.script.append(self.__indcountcheck(["store", location, mode, indcount]))
+    def store(self, location, mode):
+        self.script.append(["store", location, mode])
 
-    def goto(self, location, mode, *, indcount=1):
-        self.script.append(self.__indcountcheck(["goto", location, mode, indcount]))
+    def indstore(self):
+        self.script.append(["indstore", 0, None])
 
-    def add(self, location, mode, *, indcount=1):
-        self.script.append(self.__indcountcheck(["add", location, mode, indcount]))
+    def goto(self, location, mode):
+        self.script.append(["goto", location, mode])
 
-    def sub(self, location, mode, *, indcount=1):
-        self.script.append(self.__indcountcheck(["sub", location, mode, indcount]))
+    def add(self, location, mode):
+        self.script.append(["add", location, mode])
 
-    def compare_more(self, location, mode, *, indcount=1):
-        self.script.append(self.__indcountcheck(["cmp_more", location, mode, indcount]))
+    def sub(self, location, mode):
+        self.script.append(["sub", location, mode])
 
-    def compare_less(self, location, mode, *, indcount=1):
-        self.script.append(self.__indcountcheck(["cmp_less", location, mode, indcount]))
+    def compare_more(self, location, mode):
+        self.script.append(["cmp_more", location, mode])
 
-    def compare_equal(self, location, mode, *, indcount=1):
-        self.script.append(self.__indcountcheck(["cmp_equal", location, mode, indcount]))
+    def compare_less(self, location, mode):
+        self.script.append(["cmp_less", location, mode])
 
-    def push(self, location, mode, *, indcount=1):
-        self.script.append(self.__indcountcheck(["push", location, mode, indcount]))
+    def compare_equal(self, location, mode):
+        self.script.append(["cmp_equal", location, mode])
+
+    def push(self, location, mode):
+        self.script.append(["push", location, mode])
 
     def pop(self):
         self.script.append(["pop", None, None])
@@ -74,10 +78,6 @@ class PyAsmScript:
             code = self.script[self.scriptpointer][0]
             location = self.script[self.scriptpointer][1]
             mode = self.script[self.scriptpointer][2]
-            try:
-                indcount = self.script[self.scriptpointer][3]
-            except IndexError:
-                indcount = None
 
             if isinstance(location, str):
                 location = self.labeldata[self.labels.index(location)]
@@ -101,11 +101,12 @@ class PyAsmScript:
                 value = self.memory[location]
             elif mode is False:
                 a = self.memory[location]
-                indcount -= 1
-                while not indcount == 0:
+                self.indregister -= 1
+                while not self.indregister == 0:
                     a = self.memory[a]
-                    indcount -= 1
+                    self.indregister -= 1
                 value = a
+                self.indregister = 1
             else:
                 raise Exception("'mode' should be None, True, or False")
 
@@ -117,6 +118,9 @@ class PyAsmScript:
                     self.memory.append(None)
                 self.memory.pop(value)
                 self.memory.insert(value, self.register)
+
+            if code == "indstore":
+                self.indregister = self.register
 
             if code == "goto":
                 if value is None:
@@ -170,17 +174,6 @@ class PyAsmScript:
         print(self.register)
         print(self.scriptpointer)
         print("---------------------------")
-
-
-    @staticmethod
-    def __indcountcheck(param):
-        if param[2] == "Indirect" or param[2] == "indirect" or param[2] == "ind":
-            if not isinstance(param[3], int):
-                raise Exception("'indcount' should be int")
-            return param
-        else:
-            del param[3]
-            return param
 
 
 if __name__ == "__main__":
